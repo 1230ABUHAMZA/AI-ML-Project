@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Size Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .reference-input {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .reference-input label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .reference-input input {
+            width: 200px;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .reference-input select {
+            margin-left: 10px;
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px auto;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #canvas {
+            display: block;
+            cursor: crosshair;
+            max-width: 100%;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .instructions li {
+            margin: 5px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-calculate {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-clear {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .results {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-item label {
+            display: block;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .result-item .value {
+            font-size: 1.5em;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .point-counter {
+            text-align: center;
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📏 Object Size Calculator</h1>
+            <p>Upload an image and measure object dimensions with precision</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <input type="file" id="fileInput" accept="image/*">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 Upload Image
+                </button>
+            </div>
+
+            <div class="reference-input">
+                <label>📐 Reference Size (Known dimension of the object):</label>
+                <input type="number" id="referenceSize" placeholder="e.g., 21" value="21" step="0.1">
+                <select id="unit">
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                    <option value="inch">inch</option>
+                    <option value="m">m</option>
+                </select>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                    Enter a known dimension (e.g., A4 paper width = 21 cm)
+                </p>
+            </div>
+
+            <div class="instructions">
+                <h3>📌 How to Use:</h3>
+                <ol>
+                    <li>Upload an image containing the object you want to measure</li>
+                    <li>Enter a known reference dimension (e.g., the width of a book)</li>
+                    <li>Click on 4 corner points anywhere around the object in ANY ORDER</li>
+                    <li>Points will automatically arrange to form a proper quadrilateral</li>
+                    <li>Click "Calculate Size" to get the dimensions</li>
+                </ol>
+            </div>
+
+            <div class="point-counter" id="pointCounter">
+                Points marked: 0/4
+            </div>
+
+            <div style="text-align: center;">
+                <div class="canvas-container" id="canvasContainer" style="display: none;">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-calculate" id="calculateBtn" onclick="calculateSize()" disabled>
+                    🔢 Calculate Size
+                </button>
+                <button class="btn btn-clear" onclick="clearPoints()">
+                    🗑️ Clear Points
+                </button>
+                <button class="btn btn-reset" onclick="resetAll()">
+                    🔄 Reset All
+                </button>
+            </div>
+
+            <div class="results" id="results">
+                <h2>📊 Measurement Results</h2>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <label>Width (AB)</label>
+                        <div class="value" id="widthAB">-</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Height (BC)</label>
+                        <div class="value" id="heightBC">-</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Width (CD)</label>
+                        <div class="value" id="widthCD">-</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Height (DA)</label>
+                        <div class="value" id="heightDA">-</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Area</label>
+                        <div class="value" id="area">-</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Perimeter</label>
+                        <div class="value" id="perimeter">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const pointCounter = document.getElementById('pointCounter');
+        
+        let points = [];
+        let image = null;
+        let scale = 1;
+
+        const pointLabels = ['A', 'B', 'C', 'D'];
+        const pointColors = ['#ff4444', '#44ff44', '#4444ff', '#ffff44'];
+
+        fileInput.addEventListener('change', handleImageUpload);
+        canvas.addEventListener('click', handleCanvasClick);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                image = new Image();
+                image.onload = function() {
+                    setupCanvas();
+                    drawImage();
+                    canvasContainer.style.display = 'inline-block';
+                };
+                image.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setupCanvas() {
+            const maxWidth = 800;
+            const maxHeight = 600;
+
+            let width = image.width;
+            let height = image.height;
+
+            if (width > maxWidth) {
+                scale = maxWidth / width;
+                width = maxWidth;
+                height = height * scale;
+            }
+
+            if (height > maxHeight) {
+                scale = maxHeight / height;
+                height = maxHeight;
+                width = width * scale;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        function drawImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            
+            // Draw points and lines
+            if (points.length > 0) {
+                // Draw lines between points (only if we have 2+ points)
+                if (points.length >= 2) {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    if (points.length === 4) {
+                        ctx.closePath();
+                    }
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // Draw solid fill for complete quadrilateral
+                if (points.length === 4) {
+                    ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // Draw points
+                points.forEach((point, index) => {
+                    // Draw circle
+                    ctx.fillStyle = pointColors[index];
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw border
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    // Draw label with background
+                    const label = pointLabels[index];
+                    ctx.font = 'bold 18px Arial';
+                    const textWidth = ctx.measureText(label).width;
+                    
+                    // Background for label
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(point.x - textWidth/2 - 5, point.y - 30, textWidth + 10, 22);
+                    
+                    // Label text
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(label, point.x - textWidth/2, point.y - 12);
+                });
+            }
+        }
+
+        function handleCanvasClick(e) {
+            if (points.length >= 4) {
+                alert('All 4 points have been marked. Click "Clear Points" to start over.');
+                return;
+            }
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            points.push({ x, y });
+
+            // Auto-arrange points when we have 4 points
+            if (points.length === 4) {
+                points = arrangePointsClockwise(points);
+                calculateBtn.disabled = false;
+            }
+
+            drawImage();
+            updatePointCounter();
+        }
+
+        function arrangePointsClockwise(pts) {
+            // Find the centroid (center point)
+            const centroid = {
+                x: pts.reduce((sum, p) => sum + p.x, 0) / pts.length,
+                y: pts.reduce((sum, p) => sum + p.y, 0) / pts.length
+            };
+
+            // Calculate angle from centroid to each point
+            const pointsWithAngles = pts.map(p => ({
+                x: p.x,
+                y: p.y,
+                angle: Math.atan2(p.y - centroid.y, p.x - centroid.x)
+            }));
+
+            // Sort by angle to arrange in clockwise order
+            pointsWithAngles.sort((a, b) => a.angle - b.angle);
+
+            // Return sorted points
+            return pointsWithAngles.map(p => ({ x: p.x, y: p.y }));
+        }
+
+        function updatePointCounter() {
+            pointCounter.textContent = `Points marked: ${points.length}/4`;
+            if (points.length === 4) {
+                pointCounter.style.color = '#28a745';
+            } else {
+                pointCounter.style.color = '#667eea';
+            }
+        }
+
+        function clearPoints() {
+            points = [];
+            drawImage();
+            updatePointCounter();
+            calculateBtn.disabled = true;
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function resetAll() {
+            points = [];
+            image = null;
+            canvas.width = 0;
+            canvas.height = 0;
+            canvasContainer.style.display = 'none';
+            updatePointCounter();
+            calculateBtn.disabled = true;
+            document.getElementById('results').style.display = 'none';
+            fileInput.value = '';
+        }
+
+        function calculateDistance(p1, p2) {
+            const dx = (p2.x - p1.x) / scale;
+            const dy = (p2.y - p1.y) / scale;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function calculateSize() {
+            if (points.length !== 4) {
+                alert('Please mark all 4 corner points!');
+                return;
+            }
+
+            const referenceSize = parseFloat(document.getElementById('referenceSize').value);
+            const unit = document.getElementById('unit').value;
+
+            if (!referenceSize || referenceSize <= 0) {
+                alert('Please enter a valid reference size!');
+                return;
+            }
+
+            // Calculate distances between consecutive points
+            const distAB = calculateDistance(points[0], points[1]); // A to B (top width)
+            const distBC = calculateDistance(points[1], points[2]); // B to C (right height)
+            const distCD = calculateDistance(points[2], points[3]); // C to D (bottom width)
+            const distDA = calculateDistance(points[3], points[0]); // D to A (left height)
+
+            // Use the first side (AB) as reference to calculate pixel-to-unit ratio
+            const pixelToUnitRatio = referenceSize / distAB;
+
+            // Calculate all dimensions
+            const widthAB = distAB * pixelToUnitRatio;
+            const heightBC = distBC * pixelToUnitRatio;
+            const widthCD = distCD * pixelToUnitRatio;
+            const heightDA = distDA * pixelToUnitRatio;
+
+            // Calculate average dimensions
+            const avgWidth = (widthAB + widthCD) / 2;
+            const avgHeight = (heightBC + heightDA) / 2;
+
+            // Calculate area and perimeter
+            const area = avgWidth * avgHeight;
+            const perimeter = widthAB + heightBC + widthCD + heightDA;
+
+            // Display results
+            document.getElementById('widthAB').textContent = `${widthAB.toFixed(2)} ${unit}`;
+            document.getElementById('heightBC').textContent = `${heightBC.toFixed(2)} ${unit}`;
+            document.getElementById('widthCD').textContent = `${widthCD.toFixed(2)} ${unit}`;
+            document.getElementById('heightDA').textContent = `${heightDA.toFixed(2)} ${unit}`;
+            document.getElementById('area').textContent = `${area.toFixed(2)} ${unit}²`;
+            document.getElementById('perimeter').textContent = `${perimeter.toFixed(2)} ${unit}`;
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
